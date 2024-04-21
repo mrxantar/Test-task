@@ -2,13 +2,14 @@ from flask import Flask, render_template, request, jsonify
 from typing import List, Optional 
 from sqlalchemy import ForeignKey, select, String, Text, DECIMAL, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship, Session
+import os
+from dotenv import load_dotenv
 
-
+load_dotenv()
 app = Flask(__name__)
 
 
-
-engine = create_engine("mysql+pymysql://root:strong269@localhost:3306/taskdb", echo=True)
+engine = create_engine(os.getenv('CONNECTION_STRING'), echo=True)
 engine.connect()
 
 class Base(DeclarativeBase):
@@ -105,6 +106,7 @@ def add_handler():
 
     
     return jsonify(products_list, inventory_list, locations_list)
+    
 @app.route('/delete_entry', methods = ['POST', 'GET'])
 def delete_handler():
     data = request.json
@@ -116,7 +118,10 @@ def delete_handler():
     delete_quantity = data.get('quantity')
     warehouse = data.get('warehouse')
 
-    query = session.query(Inventory).where(Inventory.product_id == int(product)).where(Inventory.location_id == int(warehouse))
+    query = session \
+        .query(Inventory) \
+        .where(Inventory.product_id == int(product)) \
+        .where(Inventory.location_id == int(warehouse))
     
     delete = query.all()
 
